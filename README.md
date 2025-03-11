@@ -1,2 +1,2 @@
 # PlayerData
-## Target : searching football player in EPL and Laliga
+## Target : Searching football player in EPL and Laliga
