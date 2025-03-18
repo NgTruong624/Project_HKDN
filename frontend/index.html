@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPL Player Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">EPL Player Search</h1>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="input-group mb-3">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search by name, team, or nationality...">
+                    <button class="btn btn-primary" type="button" onclick="searchPlayers()">Search</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="results" class="row mt-4">
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://your-heroku-app.herokuapp.com'; // Will update this after Heroku deployment
+
+        function searchPlayers() {
+            const query = document.getElementById('searchInput').value;
+            fetch(`${API_URL}/search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(players => {
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = '';
+                    
+                    players.forEach(player => {
+                        const playerCard = document.createElement('div');
+                        playerCard.className = 'col-md-4 mb-4';
+                        playerCard.innerHTML = `
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${player.name}</h5>
+                                    <p class="card-text">
+                                        Team: ${player.team}<br>
+                                        Position: ${player.position}<br>
+                                        Nationality: ${player.nationality}
+                                    </p>
+                                    <button class="btn btn-primary" onclick="showPlayerDetails(${player.id})">View Details</button>
+                                </div>
+                            </div>
+                        `;
+                        resultsDiv.appendChild(playerCard);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error fetching players. Please try again.');
+                });
+        }
+
+        function showPlayerDetails(playerId) {
+            fetch(`${API_URL}/player/${playerId}`)
+                .then(response => response.json())
+                .then(player => {
+                    const modal = document.createElement('div');
+                    modal.className = 'modal fade show';
+                    modal.style.display = 'block';
+                    modal.innerHTML = `
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">${player.name}</h5>
+                                    <button type="button" class="btn-close" onclick="closeModal(this)"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Basic Information</h6>
+                                            <p>Position: ${player.position}</p>
+                                            <p>Team: ${player.team}</p>
+                                            <p>Nationality: ${player.nationality}</p>
+                                            <p>Age: ${player.age}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Statistics</h6>
+                                            <p>Goals: ${player.goals}</p>
+                                            <p>Assists: ${player.assists}</p>
+                                            <p>Appearances: ${player.appearances}</p>
+                                            <p>Season: ${player.season}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error fetching player details. Please try again.');
+                });
+        }
+
+        function closeModal(button) {
+            const modal = button.closest('.modal');
+            modal.remove();
+        }
+
+        // Add event listener for Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchPlayers();
+            }
+        });
+    </script>
+</body>
+</html> 
