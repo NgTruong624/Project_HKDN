@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from app.models.player import Player
-from app.utils.kaggle_utils import update_database
+from app.utils.kaggle_utils import update_database, check_kaggle_credentials
 from app import db
 
 main = Blueprint('main', __name__)
@@ -8,6 +8,14 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def index():
     return render_template('index.html')
+
+@main.route('/check-credentials')
+def check_credentials():
+    success, message = check_kaggle_credentials()
+    return jsonify({
+        'status': 'success' if success else 'error',
+        'message': message
+    })
 
 @main.route('/search')
 def search():
@@ -33,10 +41,22 @@ def player_detail(player_id):
 @main.route('/update-data')
 def update_data():
     try:
+        # First check credentials
+        cred_success, cred_message = check_kaggle_credentials()
+        if not cred_success:
+            return jsonify({
+                'status': 'error',
+                'message': f'Kaggle credentials error: {cred_message}'
+            }), 500
+
+        # Then try to update database
         success, message = update_database()
         if success:
             return jsonify({'status': 'success', 'message': message})
         else:
             return jsonify({'status': 'error', 'message': message}), 500
     except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500 
+        return jsonify({
+            'status': 'error',
+            'message': f'Unexpected error: {str(e)}'
+        }), 500 
