@@ -2,7 +2,10 @@ services:
   - type: web
     name: epl-player-search
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install --upgrade pip
+      pip install numpy==1.21.0
+      pip install -r requirements.txt
     startCommand: gunicorn run:app
     envVars:
       - key: PYTHON_VERSION
@@ -17,6 +20,9 @@ services:
         fromDatabase:
           name: epl_db
           property: connectionString
+    buildEnv:
+      - key: PYTHON_VERSION
+        value: 3.9.7
 
 databases:
   - name: epl_db
