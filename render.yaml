@@ -3,13 +3,14 @@ services:
     name: epl-player-search
     env: python
     buildCommand: |
+      apt-get update && apt-get install -y build-essential python3-dev
       pip install --upgrade pip
-      pip install numpy==1.21.0
+      pip install wheel setuptools
       pip install -r requirements.txt
     startCommand: gunicorn run:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9.7
+        value: 3.9.15
       - key: SECRET_KEY
         generateValue: true
       - key: KAGGLE_USERNAME
@@ -22,7 +23,9 @@ services:
           property: connectionString
     buildEnv:
       - key: PYTHON_VERSION
-        value: 3.9.7
+        value: 3.9.15
+      - key: DEBIAN_FRONTEND
+        value: noninteractive
 
 databases:
   - name: epl_db
