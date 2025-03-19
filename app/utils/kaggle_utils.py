@@ -76,45 +76,39 @@ def download_epl_data():
             print(f"Lỗi xác thực Kaggle API: {str(auth_e)}\n{error_traceback}")
             return False, f"Lỗi xác thực Kaggle API: {str(auth_e)}"
         
-        # Dataset info - thử nhiều dataset khác nhau nếu một cái fail
-        datasets = [
-            "aravindanr/english-premier-league-players-dataset-2020-2021",
-            "rajatrc1705/premier-league-player-statistics"
-        ]
+        # Dataset theo URL cụ thể mà user cung cấp
+        dataset = "rajatrc1705/english-premier-league202021"
         
-        download_success = False
-        error_messages = []
-        
-        for dataset in datasets:
-            try:
-                print(f"Đang tải dataset từ Kaggle: {dataset}...")
-                kaggle.api.dataset_download_files(
-                    dataset,
-                    path=data_dir,
-                    unzip=True
-                )
-                # Kiểm tra xem file có tồn tại không
-                expected_files = ['EPL_20_21.csv', 'players_stats.csv']
-                for file in expected_files:
-                    file_path = os.path.join(data_dir, file)
-                    if os.path.exists(file_path):
-                        print(f"Tải dataset thành công: {file_path}")
-                        download_success = True
-                        break
+        try:
+            print(f"Đang tải dataset từ Kaggle: {dataset}...")
+            kaggle.api.dataset_download_files(
+                dataset,
+                path=data_dir,
+                unzip=True
+            )
+            
+            # Kiểm tra các file được tải xuống
+            downloaded_files = [f for f in os.listdir(data_dir) if f.endswith('.csv')]
+            if downloaded_files:
+                print(f"Tải dataset thành công. Các file: {downloaded_files}")
+                return True, "Dataset downloaded successfully"
+            else:
+                return False, "Không tìm thấy file CSV nào sau khi tải dataset"
                 
-                if download_success:
-                    break
-            except Exception as e:
-                error_message = f"Lỗi khi tải dataset {dataset}: {str(e)}"
-                error_messages.append(error_message)
-                print(error_message)
-                continue
-        
-        if download_success:
-            return True, "Dataset downloaded successfully"
-        else:
-            detailed_error = "\n".join(error_messages)
-            return False, f"Không thể tải dataset từ Kaggle: {detailed_error}"
+        except Exception as e:
+            error_traceback = traceback.format_exc()
+            print(f"Lỗi khi tải dataset {dataset}: {str(e)}\n{error_traceback}")
+            
+            # Thử tải file bằng cách download trực tiếp
+            try:
+                # Thử phương pháp khác: Tạo dữ liệu mẫu
+                from app.utils.sample_data import get_sample_data
+                print("Không thể tải từ Kaggle API, sử dụng dữ liệu mẫu thay thế")
+                get_sample_data()
+                return True, "Không thể tải từ Kaggle, đã sử dụng dữ liệu mẫu thay thế"
+            except Exception as sample_error:
+                return False, f"Lỗi khi tải dataset và tạo dữ liệu mẫu: {str(e)}"
+                
     except Exception as e:
         error_traceback = traceback.format_exc()
         print(f"Lỗi khi tải dataset: {str(e)}\n{error_traceback}")
@@ -136,48 +130,56 @@ def update_database():
         
         print(f"Danh sách file CSV: {csv_files}")
         
-        # Kiểm tra EPL_20_21.csv trước
-        if 'EPL_20_21.csv' in csv_files:
-            df = pd.read_csv(os.path.join(data_dir, 'EPL_20_21.csv'))
-            print(f"Đã đọc file EPL_20_21.csv: {df.shape[0]} dòng, {df.shape[1]} cột")
-            print(f"Các cột: {df.columns.tolist()}")
-        elif 'players_stats.csv' in csv_files:
-            df = pd.read_csv(os.path.join(data_dir, 'players_stats.csv'))
-            print(f"Đã đọc file players_stats.csv: {df.shape[0]} dòng, {df.shape[1]} cột")
-            print(f"Các cột: {df.columns.tolist()}")
-        else:
-            # Sử dụng file đầu tiên tìm thấy
-            file_path = os.path.join(data_dir, csv_files[0])
-            df = pd.read_csv(file_path)
-            print(f"Đã đọc file {csv_files[0]}: {df.shape[0]} dòng, {df.shape[1]} cột")
-            print(f"Các cột: {df.columns.tolist()}")
+        # Chọn file đầu tiên tìm thấy
+        file_path = os.path.join(data_dir, csv_files[0])
+        df = pd.read_csv(file_path)
+        print(f"Đã đọc file {csv_files[0]}: {df.shape[0]} dòng, {df.shape[1]} cột")
+        print(f"Các cột: {df.columns.tolist()}")
             
         # Mapping để thích ứng với các dataset khác nhau
         column_mapping = {
-            # EPL_20_21.csv
+            # Mapping cho dataset EPL 20/21
             'Name': 'name',
             'Club': 'team',
             'Team': 'team',
+            'club': 'team',
+            'player': 'name',
+            'Apps': 'matches',
             'Nationality': 'nationality',
+            'nationality': 'nationality',
             'Position': 'position',
+            'position': 'position',
             'Age': 'age',
+            'age': 'age',
             'Matches': 'matches',
+            'matches_played': 'matches',
             'Appearances': 'matches',
             'Starts': 'starts',
             'Mins': 'mins',
+            'minutes': 'mins',
             'Minutes': 'mins',
             'Goals': 'goals',
+            'goals': 'goals',
             'Assists': 'assists',
+            'assists': 'assists',
             'Passes_Attempted': 'passes_attempted',
+            'passes': 'passes_attempted',
             'Perc_Passes_Completed': 'perc_passes_completed',
+            'pass_accuracy': 'perc_passes_completed',
             'Penalty_Goals': 'penalty_goals',
+            'penalties_scored': 'penalty_goals',
             'Penalty_Attempted': 'penalty_attempted',
+            'penalties_taken': 'penalty_attempted',
             'xG': 'xg',
             'xA': 'xa',
             'Yellow_Cards': 'yellow_cards',
+            'yellow_cards': 'yellow_cards',
             'Red_Cards': 'red_cards',
+            'red_cards': 'red_cards',
             'Height': 'height',
-            'Weight': 'weight'
+            'height': 'height',
+            'Weight': 'weight',
+            'weight': 'weight'
         }
         
         # Clear existing data
