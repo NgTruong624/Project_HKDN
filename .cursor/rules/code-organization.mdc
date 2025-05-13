@@ -1,0 +1,51 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Code Organization
+
+## Project Structure
+The project follows a modular Flask application structure:
+
+### Backend ([app/](mdc:app))
+- [__init__.py](mdc:app/__init__.py): Application factory pattern
+  - Creates Flask app instance
+  - Configures extensions
+  - Registers blueprints
+- [routes.py](mdc:app/routes.py): API endpoints
+  - RESTful routes
+  - Data processing endpoints
+- [models/](mdc:app/models): Database models
+  - SQLAlchemy models
+  - Data schemas
+- [utils/](mdc:app/utils): Helper functions
+  - Data processing utilities
+  - Common helper functions
+
+### Frontend ([frontend/](mdc:frontend))
+- Web interface components
+- Static assets
+- Client-side logic
+
+## Code Conventions
+1. Python files:
+   - Use snake_case for function and variable names
+   - Use PascalCase for class names
+   - Follow PEP 8 style guide
+
+2. Database:
+   - Models are defined in [app/models/](mdc:app/models)
+   - Use SQLAlchemy for database operations
+   - Follow naming conventions for database tables
+
+3. Routes:
+   - RESTful API endpoints in [app/routes.py](mdc:app/routes.py)
+   - Use proper HTTP methods (GET, POST, PUT, DELETE)
+   - Include proper error handling
+
+4. Configuration:
+   - Environment variables in [config.py](mdc:config.py)
+   - Sensitive data stored in .env file
+   - Database configuration in config.py
+

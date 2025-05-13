@@ -1,0 +1,30 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Overview
+
+This is a Flask-based web application for managing and analyzing player data. The project follows a modular structure with clear separation of concerns.
+
+## Main Components
+
+- [run.py](mdc:run.py): The application entry point that initializes the Flask app and database
+- [config.py](mdc:config.py): Configuration settings including database URI and environment variables
+- [app/](mdc:app): Main application package containing all core functionality
+  - [__init__.py](mdc:app/__init__.py): Application factory and initialization
+  - [routes.py](mdc:app/routes.py): API endpoints and route handlers
+  - [models/](mdc:app/models): Database models and schemas
+  - [templates/](mdc:app/templates): HTML templates
+  - [static/](mdc:app/static): Static assets (CSS, JS, images)
+  - [utils/](mdc:app/utils): Utility functions and helpers
+
+## Frontend
+The frontend is located in the [frontend/](mdc:frontend) directory and contains the web interface components.
+
+## Deployment
+- [render.yaml](mdc:render.yaml): Render deployment configuration
+- [Procfile](mdc:Procfile): Process file for deployment
+- [runtime.txt](mdc:runtime.txt): Python runtime specification
+- [requirements.txt](mdc:requirements.txt): Python package dependencies
+
