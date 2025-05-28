@@ -5,60 +5,278 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EPL Player Search</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .hero-section {
+            background-color: #e9ecef;
+            padding: 5rem 0;
+            margin-bottom: 2rem;
+        }
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: bold;
+        }
+        .popular-searches-section {
+            padding: 2rem 0;
+            background-color: #f8f9fa;
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 2rem;
+        }
+        .footer a {
+            color: #adb5bd;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">EPL Player Search</h1>
-        
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="input-group mb-3">
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search by name, team, or nationality...">
-                    <button class="btn btn-primary" type="button" onclick="searchPlayers()">Search</button>
+    <!-- Header -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="#">EPL Player Stats</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Players</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Teams</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">About</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section text-center">
+        <div class="container">
+            <h1>Find Your Favorite EPL Player</h1>
+            <p class="lead">Search for players by name, team, or nationality.</p>
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-8 col-lg-6">
+                    <div class="input-group mb-3">
+                        <input type="text" id="searchInput" class="form-control form-control-lg" placeholder="E.g., Kevin De Bruyne, Manchester City, Belgium...">
+                        <button class="btn btn-primary btn-lg" type="button" onclick="searchPlayers()">Search</button>
+                    </div>
                 </div>
             </div>
         </div>
+    </section>
 
+    <div class="container">
+        <!-- Popular Searches Section -->
+        <section class="popular-searches-section mb-5">
+            <h2 class="text-center mb-4">Popular Searches</h2>
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <a href="#" class="btn btn-outline-secondary mb-2">Mohamed Salah</a>
+                </div>
+                <div class="col-md-3">
+                    <a href="#" class="btn btn-outline-secondary mb-2">Erling Haaland</a>
+                </div>
+                <div class="col-md-3">
+                    <a href="#" class="btn btn-outline-secondary mb-2">Arsenal</a>
+                </div>
+                <div class="col-md-3">
+                    <a href="#" class="btn btn-outline-secondary mb-2">Brazilian Players</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search Results -->
         <div id="results" class="row mt-4">
             <!-- Results will be displayed here -->
         </div>
     </div>
 
+    <!-- Player Details Modal (kept for functionality) -->
+    <!-- This will be dynamically created by JS, but good to have a placeholder idea -->
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <p>&copy; 2024 EPL Player Search. All Rights Reserved.</p>
+            <ul class="list-inline">
+                <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
+                <li class="list-inline-item"><a href="#">Terms of Service</a></li>
+                <li class="list-inline-item"><a href="#">Contact Us</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        const API_URL = 'https://epl-player-search.onrender.com'; // Or your backend URL
+
         function searchPlayers() {
             const query = document.getElementById('searchInput').value;
-            fetch(`/search?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
+            if (!query) {
+                document.getElementById('results').innerHTML = '<p class="text-center">Please enter a search term.</p>';
+                return;
+            }
+            fetch(`${API_URL}/search?q=${encodeURIComponent(query)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(players => {
                     const resultsDiv = document.getElementById('results');
-                    resultsDiv.innerHTML = '';
+                    resultsDiv.innerHTML = ''; // Clear previous results
+                    
+                    if (players.length === 0) {
+                        resultsDiv.innerHTML = '<p class="text-center">No players found matching your criteria.</p>';
+                        return;
+                    }
                     
                     players.forEach(player => {
                         const playerCard = document.createElement('div');
                         playerCard.className = 'col-md-4 mb-4';
                         playerCard.innerHTML = `
-                            <div class="card">
-                                <div class="card-body">
+                            <div class="card h-100">
+                                <div class="card-body d-flex flex-column">
                                     <h5 class="card-title">${player.name}</h5>
                                     <p class="card-text">
-                                        Team: ${player.team}<br>
-                                        Position: ${player.position}<br>
-                                        Nationality: ${player.nationality}
+                                        <strong>Team:</strong> ${player.team || 'N/A'}<br>
+                                        <strong>Position:</strong> ${player.position || 'N/A'}<br>
+                                        <strong>Nationality:</strong> ${player.nationality || 'N/A'}
                                     </p>
-                                    <a href="/player/${player.id}" class="btn btn-primary">View Details</a>
+                                    <button class="btn btn-primary mt-auto" onclick="showPlayerDetails(${player.id})">View Details</button>
                                 </div>
                             </div>
                         `;
                         resultsDiv.appendChild(playerCard);
                     });
+                })
+                .catch(error => {
+                    console.error('Error searching players:', error);
+                    document.getElementById('results').innerHTML = '<p class="text-center text-danger">Error fetching players. Please try again later.</p>';
                 });
         }
 
-        // Add event listener for Enter key
+        function showPlayerDetails(playerId) {
+            fetch(`${API_URL}/player/${playerId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(player => {
+                    // Remove existing modal if any
+                    const existingModal = document.querySelector('.modal');
+                    if (existingModal) {
+                        existingModal.remove();
+                    }
+
+                    const modal = document.createElement('div');
+                    modal.className = 'modal fade show';
+                    modal.tabIndex = -1; // For accessibility
+                    modal.style.display = 'block';
+                    modal.setAttribute('aria-labelledby', 'playerDetailsModalLabel');
+                    modal.setAttribute('aria-hidden', 'true');
+                    
+                    // Basic structure from your original player_detail.html, adapted for modal
+                    modal.innerHTML = `
+                        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="playerDetailsModalLabel">${player.name || 'Player Details'}</h5>
+                                    <button type="button" class="btn-close" onclick="closeModal(this)" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Basic Information</h6>
+                                            <p><strong>Position:</strong> ${player.position || 'N/A'}</p>
+                                            <p><strong>Team:</strong> ${player.team || 'N/A'}</p>
+                                            <p><strong>Nationality:</strong> ${player.nationality || 'N/A'}</p>
+                                            <p><strong>Age:</strong> ${player.age || 'N/A'}</p>
+                                            <p><strong>Height:</strong> ${player.height ? player.height + ' cm' : 'N/A'}</p>
+                                            <p><strong>Weight:</strong> ${player.weight ? player.weight + ' kg' : 'N/A'}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Performance Statistics</h6>
+                                            <p><strong>Matches:</strong> ${player.matches || 'N/A'}</p>
+                                            <p><strong>Starts:</strong> ${player.starts || 'N/A'}</p>
+                                            <p><strong>Minutes Played:</strong> ${player.mins || 'N/A'}</p>
+                                            <p><strong>Goals:</strong> ${player.goals || 'N/A'}</p>
+                                            <p><strong>Assists:</strong> ${player.assists || 'N/A'}</p>
+                                            <p><strong>Expected Goals (xG):</strong> ${player.xg || 'N/A'}</p>
+                                            <p><strong>Expected Assists (xA):</strong> ${player.xa || 'N/A'}</p>
+                                            <p><strong>Yellow Cards:</strong> ${player.yellow_cards || 'N/A'}</p>
+                                            <p><strong>Red Cards:</strong> ${player.red_cards || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" onclick="closeModal(this)">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                    // Add class to body to prevent scrolling when modal is open
+                    document.body.classList.add('modal-open'); 
+                })
+                .catch(error => {
+                    console.error('Error fetching player details:', error);
+                    // You might want to display this error in a more user-friendly way
+                    alert('Error fetching player details. Please try again.');
+                });
+        }
+
+        function closeModal(buttonOrElement) {
+            const modal = buttonOrElement.closest('.modal');
+            if (modal) {
+                modal.remove();
+                // Remove class from body
+                document.body.classList.remove('modal-open');
+            }
+        }
+
+        // Add event listener for Enter key in search input
         document.getElementById('searchInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 searchPlayers();
+            }
+        });
+
+        // Handle popular searches click (optional - for demonstration)
+        document.querySelectorAll('.popular-searches-section a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const searchTerm = this.textContent;
+                document.getElementById('searchInput').value = searchTerm;
+                searchPlayers();
+            });
+        });
+
+        // Close modal on ESC key press
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                const openModal = document.querySelector('.modal.show');
+                if (openModal) {
+                    closeModal(openModal);
+                }
             }
         });
     </script>
